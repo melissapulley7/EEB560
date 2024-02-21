@@ -1,0 +1,58 @@
+---
+title: "Week four examples pt2"
+author: "Alejandro Molina-Moctezuma"
+date: "2024-02-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Simulating population and sample
+
+We will use the same data from the last example.
+We sample 20 individuals.
+
+```{r}
+set.seed(123)
+pop <- rnorm(n=5438, mean=40, sd=6)
+
+set.seed(75)
+SnorkSample1 <- sample(pop, size=20)
+SnorkSample1
+
+```
+
+
+The SnorkSample1 represents a vector of size 20 with lengths of individuals.
+
+We can obtain the mean size, and standard deviation from the sample
+
+```{r}
+X_bar<-mean(SnorkSample1)
+s<-sd(SnorkSample1)
+n<-length(SnorkSample1)
+X_bar
+s
+n
+```
+
+And with that, we can calculate the lower and upper confidence interval using the qt
+
+```{r}
+lowerCI <- X_bar - qt(0.975, df=n-1)*s/sqrt(n)
+upperCI <- X_bar + qt(0.975, df=n-1)*s/sqrt(n)
+
+X_bar
+lowerCI
+upperCI
+```
+
+
+
+```{r}
+qt(0.975, df=n-1)
+
+qt(0.025,df=n-1)
+```

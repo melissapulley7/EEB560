@@ -1,0 +1,88 @@
+---
+title: "Week four examples"
+author: "Alejandro Molina-Moctezuma"
+date: "2024-02-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Population simulation
+
+We will simulate a population. This simulated population has 5,438 mussels (Green Floater) in a stream. 
+Size is represented by $ X \sim N(\mu = 40, \sigma = 6)$
+
+```{r}
+set.seed(123)
+pop <- rnorm(n=5438, mean=40, sd=6)
+hist(pop) 
+```
+
+## Empirical population mean size and sd
+
+The following code obtains the **population parameters** for $\mu$ and $\sigma$. You can think of the estimated variables as **real values**
+
+```{r}
+mu <- mean(pop)
+sigma <- sqrt(sum((pop - mu)^2)/length(pop)) ## why not just use sd()?
+mu
+sigma
+```
+
+## Let's sample!
+
+We will do one snorkel survey. We snorkel and get 20 individuals.
+
+```{r}
+set.seed(NULL)
+SnorkSample1 <- sample(pop, size=20)
+SnorkSample1 ## see the sizes we have measured!
+```
+
+
+
+Look at your values. Those are the measurmenets of the 20 mussels you measured. Now, what's the mean and sd of your **sample** Sample estimates are our **approximations** to the real value by measureing a subsert of the population.
+
+
+```{r}
+mean(SnorkSample1)
+sd(SnorkSample1)
+
+```
+This is for one sampling event! Now, what if we did it 1,000 times?
+
+```{r}
+Xbar <- rep(NA, 1000) # set up a vector of 1000 NAs
+
+for (i in 1:1000){ 
+	Xbar[i]<- mean(sample(pop, size=20))} 
+
+
+mean(Xbar)
+sd(Xbar)
+
+```
+
+
+
+And when we get a histogram?
+```{r}
+hist(Xbar, breaks=seq(min(Xbar),max(Xbar),length.out=26))
+```
+
+
+
+
+Setting a camera trap and see how many jaguars you see in a month
+
+
+```{r}
+ Xbar <- rep(NA, 40000) # set up a vector of 40000 NAs
+ # calculate mean of a sample of 100 observations of Poisson random variable with # mean=4; repeat over 40000 times, i.e., take 40000 samples of Xbar
+for (i in 1:40000){ 
+     Xbar[i]<- mean(rpois(n=20, lambda=4))}
+ hist(Xbar, breaks=seq(min(Xbar),max(Xbar),length.out=26))
+#obtain histogram
+```

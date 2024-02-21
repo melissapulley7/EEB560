@@ -1,0 +1,228 @@
+---
+title: "Class examples 3"
+author: "Alejandro Molina-Moctezuma"
+date: "2024-02-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+## Instructions
+
+This is not a lab, but it will help you udnerstand the code needed to run 
+
+
+
+## Case 1: Teporingo
+
+The teporingos are an endangered species of rabbits. You are working at a global caprive breeding program, and you have been measuring the weight of each 1-yr old individual. Therefore, you know that your population mean is: 453.65g, and your population variance is 58.61315g.
+
+You suspect one of the programs receiving Teporingos is mismanaged and not feeding them adequately, and you suspect they aren't gaining weight as they should.
+
+You sample **20** teporingos, and their mass is **421.01 g**
+
+My null hypothesis is:___
+
+My alternative hypotesis is:___
+
+### One tail test
+We know that values between -1.96 and 1.96 contain 95% of the area under the curve.
+We also know that everything to the left of -1.96 represents 2.5% of the area under the curve, but this time we are working on a on tail test.
+
+What is the "Z" value that represent 5% of the area under the curve? Let's ask R!
+
+```{r}
+qnorm (.05)
+```
+Now, if our test-statistic is lower than that number, then, we can reject the null hypothesis!
+
+The test statistic is estimated as:
+
+$$Z = \displaystyle \frac{\bar{x}-\mu}{\sigma / \sqrt{n}}$$
+Which results in:
+```{r}
+
+Zstat<-(421.01-453.65)/(58.61315/sqrt(20))
+Zstat
+```
+Now, with that value, can we reject or fail to reject the null hypothesis?
+
+Let's obtain the p-value
+```{r}
+
+pnorm(Zstat)
+```
+During the exam, you will be asked to interpret p values. Make sure you understand what's going on here!
+
+Another way to estimate it directly is:
+```{r}
+pnorm(421.01, mean=453.65,sd=58.61315/sqrt(20))
+
+```
+Which gives us the same P-value. Understand where each number came from!
+
+## t-test
+
+### First step, import the data, and start the package
+
+Download and import the .csv file using:
+
+```{r}
+teporingos<-read.csv("teporingos.csv")
+teporingos<-teporingos$mass
+```
+
+
+Let's intstall a package. You only need to install a package once per computer
+```{r}
+#install.packages('lterdatasampler')
+library(lterdatasampler)
+```
+
+Calculate the mean, and sample sd, as well as the n
+
+```{r pressure, echo=FALSE}
+
+X_bar<-
+s<-
+n<-
+  
+```
+
+It's very easy to run a t-test in R.
+We give R our data set, and tell it that we want to know if it's different from 453.65 (our population mean!)
+
+```{r}
+
+t.test(x=teporingos, mu=453.65, alternative='two.sided')
+
+```
+
+Now, there is an issue with that last line of code. Can you guess what it is?
+Run it again, but do it ocrrectly this time
+```{r}
+t.test()
+
+```
+
+To estimate it by hand the equation is:
+
+$$t = \displaystyle \frac{\bar{X}-\mu_all}{s / \sqrt{n}}$$
+
+```{r}
+t<-(X_bar-453.65)/(s/sqrt(n))
+t
+```
+
+And we can estimate the p-value as well!
+
+```{r}
+pt(q=t,df=n-1) 
+```
+
+## Two sample unpaired test
+
+Download the data:
+
+
+```{r}
+teporingos2<-read.csv("~teporingos2pops.csv")
+teporingos2$site<-as.factor(teporingos2$site)
+```
+
+Let's explore the data:
+```{r}
+summary(teporingos2)
+```
+
+And the mean of both populations!
+
+```{r}
+tapply(teporingos2$mass,teporingos2$site,mean)
+```
+Now let's separate them by population
+
+```{r}
+teporingos_tex<- teporingos2[teporingos2$site %in% 'texcoco',]
+teporingos_top<- teporingos2[teporingos2$site %in% 'topilejo',]
+```
+
+And let's run the t-test!
+Let's assume equal variance:
+
+```{r}
+t.test(x=teporingos_tex$mass, y=teporingos_top$mass, alternative='two.sided', var.equal=T, paired=F)
+```
+
+
+And if we  had unequal variance:
+```{r}
+t.test(x=teporingos_tex$mass, y=teporingos_top$mass, alternative='two.sided', var.equal=F, paired=F)
+```
+
+That was easy!
+
+## Paired test
+
+```{r}
+teporingospaired<-read.csv("~teporingospaired.csv")
+
+```
+
+Check the data:
+```{r}
+head(teporingospaired)
+```
+
+And run the data!
+
+```{r}
+t.test(teporingospaired$diet, teporingospaired$original, paired=T, alternative='two.sided')
+
+```
+
+Or, we can perform a one-sample t-test on the vector of differences (d), on whether its mean is significantly different from zero ## same answer!!
+
+```{r}
+teporingospaired$delta<-teporingospaired$diet - teporingospaired$original
+
+t.test(teporingospaired$delta, mu=0, alternative='two.sided')
+```
+
+These tests were done using a two-tailed approach. Was that correct? Do it with one tail now!
+
+
+
+## Non parametric tests
+
+When we don't follow all assumptions. Mainly, normality
+
+We can do a Mann-Whitney U test for unpaired data:
+
+```{r}
+
+forest <- c(7,8,15,9,11)
+cropland <- c(4,6,8,3,9)
+wilcox.test(forest, cropland, mu=0, alternative= 'two.sided')
+
+
+
+```
+This test essentially ranks each observation from lowest to highest, so the values aren't important, just the ranks:
+
+```{r}
+forestrank <- c(4,5.5,10,7.5,9); croplandrank <- c(2,3,5.5,1,7.5)
+wilcox.test(forest, cropland, mu=0, alternative= 'two.sided') 
+
+```
+
+We can also do a "paired" test. Called Wilcoxon signed-rank test. We look at differences between pairs, rank those differences and look at the direction of the differences:
+
+```{r}
+forest <- c(7,8,15,9,11)
+cropland <- c(4,6,8,3,9)
+wilcox.test(forest, cropland, mu=0, paired=T, alternative= 'two.sided')
+```
+
