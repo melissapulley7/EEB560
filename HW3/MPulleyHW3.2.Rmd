@@ -35,7 +35,9 @@ This is a continuation of Lab 3. If you haven't finished lab 3 part 1, feel free
 \importantbox{These boxes will inform you of things you need to submit or questions you need to answer!}
 
 
-\answerbox{These boxes will contain answers to questions.}
+\answerbox{Testing. 1. 2. 3. These boxes will contain answers to questions.}
+
+
 
 ## 1 Normal distribution
 
@@ -95,6 +97,7 @@ we would use:
 
 ```{r}
 pnorm(0, 0, 1)
+
 ```
 Which gives us 0.5. I hope this makes sense! It's the area from -inf to 0. And because the mean = 0, this represents half of the area.
 

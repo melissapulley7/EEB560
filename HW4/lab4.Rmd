@@ -120,7 +120,10 @@ lowerCI2
 upperCI
 upperCI2
 ```
-\answerbox{a1 c) I would say that the populations may be close in size, it appears that the second population may be larger.}
+\answerbox{a1. a) The mean is 43.88144, the sd is 9.653171, and n is 15 for the sample of population 2. b) The 95\% confidence interval for pop 2 is $[38.5357, 49.22719]$ }
+
+
+\answerbox{a1. c) I would say that the populations may be close in size. By examining the means it appears that the second population may be larger, but because there is some overlap in confidence intervals, it is possible that they are same size.}
 
 \notebox{Try plotting (or drawing in your notebook!) the points and CI's to make a good judgement of whether they are different!}
 
@@ -180,11 +183,11 @@ t.test(x=newSample1, y=newSample2, alternative="less", var.equal=T, paired=F)
 t.test(x=SnorkSample1, y=SnorkSample2, alternative='less', var.equal=T, paired=F) 
 ```
 
-\answerbox{a2 a). The p-value for this t-test is $0.2248$. Since this value is above 0.05, we fail to reject the null hypothesis. This means that we do not have sufficient support to believe that the size of mussels in population 2 is greater than mussels in population 1.}
+\answerbox{a2 a). The p-value for this t-test is $0.2248$. Since this value is above 0.05, we fail to reject the null hypothesis. This means that we do not have sufficient support that the size of mussels in population 2 is less than or equal to mussels in population 1.}
 
-\answerbox{a2 b). The results of the t-test disagree with my initial with my conclusions from question 1.}
+\answerbox{a2 b). The results of the t-test disagrees with my initial with my conclusions from question 1 since we had some indication that population 2 is larger than population 1.}
 
-\answerbox{a2 c). Because we know that average size of mussels in population 2 is larger than the average size of mussels in population one, this is an error. Because we did not reject the null hypothesis, even though it was false, this is a type 2 error.}
+\answerbox{a2 c). Because we know that average size of mussels in population 2 is larger than the average size of mussels in population one, this is an error. Because we did not reject the null hypothesis, even though it was false, this is a type 2 error. This is likely due to the small sample size.}
 
 Now, let's explore what happens when we change the sample size.
 
@@ -258,18 +261,18 @@ set.seed(111)
 newpop2 <- rnorm(n=1819, mean=48.9, sd=6)
 
 set.seed(321)
-#a3 a
-NewPopSample1 <- sample(newpop, size=125)
-NewPopSample2 = sample(newpop2,size=250)
+#a4 a
+NewPopSample1 <- sample(newpop, size=15)
+NewPopSample2 = sample(newpop2,size=15)
 ```
 
 \answerbox{a4 a) We will also use a one-sided test}
 
 ```{r}
-#a3 c
+#a4 c
 t.test(x=NewPopSample1, y=NewPopSample2, alternative="less", paired=F)
 ```
-\answerbox{a4 a) The p-value for this t-test is $2.2\times 10^{-16}$, which is significantly below 0.05. This means we have significant support that the mean mussel size of population 2 is larger than population 1. }
+\answerbox{a4 a) The p-value for this t-test is $2.02\times 10^{-6}$, which is significantly below 0.05. This means we have significant support that the mean mussel size of population 2 is larger than population 1. }
 
 \answerbox{a4 b) This answer disagrees with question 2. Despite small samples, because the original means were further apart, the t-test was still able to determine that the mean mussel size of population 2 is smaller than population 1.}
 
@@ -409,7 +412,7 @@ plot(resid(m1)~dat$year) # resid(model object) generates the residual values
 abline(h=0) 
 ```
 
-\answerbox{a6. a) The residuals appear to have a symmetric distribution around zero, which means they look okay and the mean error is 0.}
+\answerbox{a6. a) The residuals appear to have a symmetric distribution around zero, which means they look okay.}
 
 ```{r}
 beta0 = as.numeric(m1$coefficients[1])
@@ -422,7 +425,7 @@ predID2001 - predID2000
 ```
 \answerbox{a6 b). The predicted temperature for the year 2000 and 2001 are -0.8559502 and -0.837048 respectively. The difference between these data is 0.01890226 which makes sense this is the slope from the linear model.}
 
-\answerbox{a6 c). 22.62% of the variance in temperature is described by the model.}
+\answerbox{a6 c). 22.62\% of the variance in temperature is described by the model.}
 
 \notebox{Having a hard time interpreting residuals? Ask Me, Anchal, or Brian!}
 
@@ -465,7 +468,7 @@ Explore the Q-Q plot.
 Explore the plot with the regression line:
 
 ```{r}
-plot(temp~year, ylim=c(-8,4), xlab='Year', ylab= 'Average Daily Temperature', dat)
+plot(temp~year, ylim=c(-8,4), xlab='Hydrological Year', ylab= 'Average Daily Temperature', dat)
 lines(temp~year, dat)
 abline(m1, col='purple')
 ```
@@ -474,7 +477,7 @@ You can see whether the purple fitted line is centered.
 You can also plot the residual against the predictor using:
 
 ```{r}
-plot(resid(m1)~dat$year, xlab="Year", ylab="Residuals") # resid(model object) generates the residual values
+plot(resid(m1)~dat$year, xlab="Hydrological Year", ylab="Residuals") # resid(model object) generates the residual values
 abline(h=0) 
 ```
 
@@ -532,7 +535,7 @@ assumption 1 can be considered supported, that is errors are normally distribute
 
 \vspace{1ex}
 
-(A4). The auto-correlation plot shows that the data are not correlated, which supports the assumption of independence.Our data is not independent, but it is not auto correlated.
+(A4). The auto-correlation plot shows that the data are not correlated. Since our data is time-related, it is not independent
 }
 
 ### 4.5 Ice cover
@@ -559,7 +562,7 @@ m2<-lm(ice_duration~year,data=dat) #fit SLR model of temp against year, place in
 summary(m2) 
 ```
 
-\answerbox{a8. a) The rate of decline of ice cover is 0.16660 units per year. 
+\answerbox{a8. a) The rate of decline of ice cover is 0.16660 days per year. 
 
 \vspace{1ex}
 
@@ -575,7 +578,7 @@ The coefficient given are the y-intercept and the slope, as providing standard e
 
 \vspace{1ex}
 
-The residual standard error is the standard deviation of the errors (residuals) which is 16.38. This indicates the spread of the errors.
+The residual standard error is the standard deviation of the errors (residuals) which is 16.58. This indicates the spread of the errors.
 
 \vspace{1ex}
 
@@ -592,7 +595,7 @@ The last item indicates model significance and gives the f-statistic and a p-val
 qqPlot(resid(m2))
 
 #a2 - linearity
-plot(ice_duration~year, ylim=c(-8,4), xlab='Ice cover duration', ylab= 'Year', dat)
+plot(ice_duration~year, ylim=c(-8,4), ylab='Ice cover duration', xlab= 'Hydrological Year', dat)
 lines(temp~year, dat)
 abline(m1, col='purple')
 
@@ -619,7 +622,7 @@ acf(resid(m2))
 (A4). Since the data is time related, the data cannot be independent. The auto-correlation plot shows that the data are not correlated.
 }
 
-\answerbox{a8 d. Is there a decline in ice cover duration over this time? Yes, the appears to be a linear trend for decline in ice cover duration over time. Since the p-value is below 0.05 for both values, we are able to reject the null model and have support for our alternative model. The rate of decline is 0.16660 units of ice cover per year.}
+\answerbox{a8 d. Is there a decline in ice cover duration over this time? Yes, the appears to be a linear trend for decline in ice cover duration over time. Since the p-value is below 0.05 for both values, we are able to reject the null model and have support for our alternative model. The rate of decline is 0.16660 days of ice cover per year.}
 
 
 \importantbox{Q9. 6 pts. Answer the question. "Is warming linked to a decline in ice cover duration? If so, what is the decline in ice cover duration per 1 deg C increase in air temperature?" You’ll need to fit the regression model (1 pt). You then need to interpret the 6 main outputs of regression model; outputs are printed via summary() (2 pts). Further, you will need to test the 4 main assumptions of a SLR model (2 pts). And lastly, include a sentence or two to conclude your findings associated with each research question (1 pts). }
@@ -632,7 +635,7 @@ m3<-lm(ice_duration~temp,data=dat) #fit SLR model of temp against year, place in
 summary(m3) 
 ```
 
-\answerbox{a9. a) The rate of decline of in duration of ice cover is 8.6600 units per degree Celsius. 
+\answerbox{a9. a) The rate of decline of in duration of ice cover is 8.6600 days per degree Celsius. 
 
 \vspace{1ex}
 
@@ -665,8 +668,8 @@ The last item indicates model significance and gives the f-statistic and p-value
 qqPlot(resid(m3))
 
 #a2 - linearity
-plot(ice_duration~temp, xlab='Temp', ylab= 'Ice cover duration', dat)
-#lines(ice_duration~temp, dat)
+plot(ice_duration~temp, xlab='Average Daily Temperature', ylab= 'Ice cover duration', dat)
+lines(ice_duration~temp, dat)
 abline(m3, col='purple')
 
 
@@ -677,7 +680,7 @@ abline(h=0)
 #a4 - independence
 acf(resid(m3))
 ```
-\answerbox{a9. c) **Update**
+\answerbox{a9. c) 
 (A1). Since some of the residuals lie outside of the shaded region along the QQ-line, we have less support that the errors are normally distributed, but we can still proceed with caution.
 
 \vspace{1ex}
@@ -690,11 +693,10 @@ acf(resid(m3))
 
 \vspace{1ex}
 
-(A4). Since the data is related by temperature, the data are independent. The auto-correlation plot shows that the data are not correlated.
+(A4). Since the data is related by temperature, the data are independent. This is also supported by the plot for (A2) about linearity. We can see that the data points are connected in order of time, but we can see that the subsequent data are not immediately impacted by the prior data point. The auto-correlation plot shows that the data are not correlated.
 }
 
-\answerbox{a9 d.Is warming liked to a decline in ice cover duration? **Update** Yes, the appears to be a linear trend for decline in ice cover duration with respect to temperature. Since the p-value is below 0.05 for both values, we are able to reject the null model and have support for our alternative model. The ice cover duration decreases 8.6600 per increase in degree celsius. }
-
+\answerbox{a9 d.Is warming liked to a decline in ice cover duration? Yes, the appears to be a linear trend for decline in ice cover duration with respect to temperature. Since the p-value is below 0.05 for both values, we are able to reject the null model and we have support for our alternative model. The ice cover duration decreases 8.6600 per increase in degree celsius. }
 
 
 If you are eager for more work, you can get some extra credit.
@@ -727,10 +729,36 @@ summary(m4)
 \importantbox{Q10. 2 pts. Look at the model summary, and interpret the results. Is any population different? Which one has the largest mean size and which one the smallest length size?}
 
 \answerbox{a10. Looking at the model summary, we have the model
+\begin{align}
+y= 38.1053 + 3.4817x-0.2183x
+\end{align}
+This test evaluates whether the null model should be supported over the categorical linear model above (1). Examining our model output, we see that the p-value for SiteStream 2 is 0.0141, so we are able to reject the hypothesis that the "slope" of SiteStream2, $\beta_1$, is 0 for this model. The p-value for SiteSteam3 is 0.8756, which is not below 0.05, so we are \textbf{not} able to reject the hypothesis that the "slope" of SiteStream3, $\beta_2$, is 0.  The overall p-value is 0.01433, which is below 0.05, so we are able to reject the null model in favor of (1).
 
-$$y= 38.1053 + 3.4817x-0.2183x$$
+\vspace{1ex}
 
+We can examine the mean size of each population
+
+\vspace{1ex}
+
+\renewcommand\arraystretch{1.5}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Site} & \textbf{Calculation} & \textbf{Mean size} \\ \hline
+Sitestream1 &  $38.1053 +3.4817\cdot 0-0.2183 \cdot 0$   & $38.1053$ \\ \hline
+Sitestream2 & $38.1053 +3.4817\cdot 1-0.2183 \cdot 0$ & $41.587$ \\ \hline
+Sitestream3 & $38.1053 +3.4817\cdot 0 -0.2183 \cdot 1$ & $37.887$ \\ \hline
+\end{tabular}
+
+\vspace{1ex}
+
+
+So, we can conclude that Sitestream2 has the largest mean size, and the Sitestream3 has the smallest mean size.
 }
+
+\renewcommand\arraystretch{1}
+
+\vspace{1ex}
+
 
 Now, let's run an ANOVA.
 This is very simple in R
@@ -744,7 +772,7 @@ anova(m2)
 
 \answerbox{a11.
 The null hypothesis is that the mean of all 3 populations are equal. The alternative hypothesis is that at least one of the means are different from the others.
-Since the p-value is small (below 0.05), we have reason to reject the null hypothesis. Biologically, this means that all three sites do not have the same mean size of mussels.
+Since the p-value is small (below 0.05), we have reason to reject the null hypothesis. Biologically, this means that all three sites do not have the same mean size of mussels. This is supports our conclusions from question 10.
 }
 
 Lab total: 36 pts
