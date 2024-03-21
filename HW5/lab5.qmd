@@ -6,6 +6,7 @@ editor: visual
 header-includes:
   - \usepackage{awesomebox}
   - \usepackage[colorlinks=true, urlcolor=blue, linkcolor=red]{hyperref}
+  -  \newcommand{\answerbox}[1]{\awesomebox[violet]{2pt}{\faComment}{violet}{#1}}
 ---
 
 ## Lab 5. Multiple linear models and model selection
@@ -26,7 +27,7 @@ model1 = lm(Sepal.Length~Sepal.Width + Species+ Sepal.Width:Species, data=iris)
 summary(model1)
 ```
 
-\answerbox{The null hypothesis is that the null model better represents the data than the proposed model. Since our p-value is very small, so have significant support for our proposed model. }
+\answerbox{The null hypothesis is that the null model better represents the data than the proposed model. Since our p-value is very small, so have significant support for our proposed model. The p-values for the intercept and sepal width coefficents are below 0.05, meaning they have support to be non-zero. However, the coefficient for the other coefficients is above 0.05, meaning that we cannot discount that these coefficients may be zero, so this model could be better.}
 
 Visualizing data is a great way to understand what's going on. We are going to do the following:
 
@@ -47,6 +48,13 @@ Look at your plot. Does it seem to have an interaction term? Do you think the la
 Let's run the same model again, but without the interaction term
 
 \importantbox{Q2. 3 pts. Run the summary of your model, and interpret it. Look at the F-statistic, and the model p-value. (null hypothesis is, this model explains the data just as well as a null model?). Is it significantly better than a null model? Look at each coefficient and whether they are significant. Are they significant? Would you say this is a good model? Would you say it's better than the las one?}
+
+\answerbox{A2. In this new model, we also have a p-value significantly below 0.05, which gives significant support for this proposed model over the null model. Furthermore, all of the coefficients have p-values below 0.05, supporting that they are all non-zero. I would say that this is a good model and that it is better than model 1 since all of the coefficients have significant p-values. }
+
+```{r}
+model2 = lm(Sepal.Length~Sepal.Width + Species, data=iris)
+summary(model2)
+```
 
 Now, hopefully you've been on top of your game, you have submitted your lab 4, and the study guide, and you're actually working on this during Friday lab (or during the weekend!). And you are asking yourself, how can we tell if this is a better model? We haven't talked about it in class!
 
@@ -77,17 +85,18 @@ AIC(model1,model2,model3)
 
 \importantbox{Q3. 1 pts. Based on the AIC, which is the best model?}
 
+\answerbox{A3. Because it has the lowest AIC, model 2 is the best model from these options.}
+
 ## Green Frogs
 
 We will use data from the following publication by M. Mazerolle (2006): *Improving data analysis in herpetology: using Akaike's Information Criterion (AIC) to assess the strength of biological hypotheses*. The data feature mass lost by green frogs (*Lithobates clamitans*) after spending two hours on one of three substrates that are encountered in some landscape types. The response variable is the mass lost (Mass_lost) and we are interested in testing difference among substrate types.
 
 To make things simpler, we will only use main effects. No interactions (things can get very complicated, very fast).
 
-In order to analyze this dataset, you will need to download and load the "AICcmodavg" package. And you will need to load the package. Once you have loaded the package, you can load teh dataset. We will only use the first 7 columns of the dataset.
+In order to analyze this dataset, you will need to download and load the "AICcmodavg" package. And you will need to load the package. Once you have loaded the package, you can load the dataset. We will only use the first 7 columns of the dataset.
 
 ```{r echo=F}
 library(AICcmodavg)
-
 ```
 
 ```{r}
@@ -187,15 +196,50 @@ Now it's time for you to run all the other 7 candidate models. Please make sure 
 
 \importantbox{Q4. 8 pts. Run the other 7 models. And then compare ALL models using AIC. Which one is the best model?}
 
+```{r}
+frogM1<-lm(logMass_lost ~ 1, data=frog)
+frogM2<-lm(logMass_lost ~ 1+ (InitMass_cent + I(InitMass_cent^2)), data=frog)
+frogM3<-lm(logMass_lost~Shade, data=frog)
+frogM4<-lm(logMass_lost~Shade+(InitMass_cent + I(InitMass_cent^2)), data=frog)
+frogM5<-lm(logMass_lost~Substrate, data=frog)
+frogM6<-lm(logMass_lost~Substrate + (InitMass_cent + I(InitMass_cent^2)), data=frog)
+frogM7<-lm(logMass_lost~Shade+Substrate,data=frog)
+frogM8<-lm(logMass_lost ~ InitMass_cent + I(InitMass_cent^2) + Substrate + Shade,
+data = frog)
+```
+
+Now, we can check the AIC
+
+```{r}
+AIC(frogM1,frogM2,frogM3,frogM4,frogM5,frogM6,frogM7,frogM8)
+```
+
 Now that we know the best model, you can focus on that one model. Look at the best model summary again.
 
+\answerbox{A4.Model 8 is the best because it has the lowest AIC.}
+
 \importantbox{Q5. 2 pts. Describe the best model. What factors affect the mass loss in frogs?}
+
+\answerbox{A5. 2pts. Model 8 models the frog's lost mass with explanatory variables including the initial mass, substrate (including soil and Sphagnum), and shade. This model has an overall significant p-value, and significant p-values for all individual coefficients as well. }
+
+```{r}
+summary(frogM8)
+```
 
 ### Interactive models
 
 Finally, and just for fun, try running the global model again (frogM8). Just this time, there is an interactive effect between shade and substrate (but not with mass). Call it frogM9.
 
-\importantbox{Q6. 4 pts. Run frogM9. Is i better than your best model from Questions 4 and 5? How would you interpret this model?}
+\importantbox{Q6. 4 pts. Run frogM9. Is it better than your best model from Questions 4 and 5? How would you interpret this model?}
+
+\answerbox{A6. Model 9 models the frog's lost mass with explanatory variables including the initial mass, substrate (including soil and Sphagnum), and shade, and also incorporates interaction terms between the substrate types and shade.  According to AIC, Model 9 now has the lowest AIC. However, this value is only about 2 below the AIC of Model 8. Since the AIC are so close, the two models are considered largely the same. So, I would say that model 8 is the best since the AIC analysis indicates the models are not substantially different, but this model has less complexity.  We can also affirm this decision by examining the model summary for FrogM9, where we see that the p-values for the coefficients on the interaction terms are larger than 0.05 (that is, not signicant), meaning we do not have sufficient support to conclude that their coefficients are nonzero. }
+
+```{r}
+frogM9<-lm(logMass_lost ~ InitMass_cent + I(InitMass_cent^2) + Substrate + Shade + Substrate:Shade,
+data = frog)
+AIC(frogM1,frogM2,frogM3,frogM4,frogM5,frogM6,frogM7,frogM8,frogM9)
+summary(frogM9)
+```
 
 Congrats, you are done with this assignment :)
 
