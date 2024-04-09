@@ -1,0 +1,239 @@
+---
+title: "March 27 lab"
+format: html
+editor: visual
+---
+
+## Generalized Linear models
+
+Just as a reminder... We use GLM's when the predictor and response variables **DO NOT** have an underlying linear relationship.
+
+In **Linear Models** we model the response as a function of the predictors.
+
+**In GLM, we model a function of the response** as a function of the predictors. That function is called the link function.
+
+For binomial data, we use the **LOGISTIC REGRESSION: logit(p/(1-p))**
+
+## Logistic regression
+
+When the response variable is binary, our responses are limited to 0's and 1's. Which is which depends on you, but usually 1 is seen as a "success" or "positive".
+
+Some examples:
+
+1.  Presence/absence
+2.  Alive/Dead
+3.  Homozygous/Heterozygous
+4.  Mature/non mature
+5.  Male/Female
+6.  Pregnant/no pregnant
+7.  Healthy / diseased
+
+## Data
+
+Download the orchid.RDS file and read it into an object called orchiddata.
+
+```{r}
+orchiddata <- readRDS("orchid.RDS")
+```
+
+Let's explore the data
+
+```{r}
+head(orchiddata)
+```
+
+And let's look at the summary
+
+```{r}
+summary(orchiddata)
+```
+
+Let's make habitat into a "factor"
+
+```{r}
+orchiddata$habitat<-as.factor(orchiddata$habitat)
+```
+
+And look into the summary again:
+
+```{r}
+summary(orchiddata)
+```
+
+Let's now plot our data:
+
+```{r warning=FALSE}
+library(ggplot2)
+
+ggplot() +
+  geom_point(data = orchiddata, aes(x = elevation, y = presence),size=4) +
+  scale_y_continuous("Presence") +
+  scale_x_continuous("Elevation (m)") +
+  theme_bw()
+
+```
+
+Now, let's run a normal linear model, in which we explore the presence of the orchids dependent on the elevation:
+
+```{r}
+mod1 <- lm(presence~elevation, data= orchiddata)
+summary(mod1)
+```
+
+And let's add the model predictors to our plot:
+
+```{r}
+model_pred <- predict(mod1)
+
+ggplot() +
+ geom_point(data = orchiddata, aes(x = elevation, y = presence),size=4) +
+ geom_line(aes(orchiddata$elevation, model_pred)) +
+  scale_y_continuous("Presence") +
+  scale_x_continuous("Elevation (m)") +
+  theme_bw()
+```
+
+Ok, we talked about this during Monday's leccture.
+
+Now, let's use the link function.
+
+Remember:
+
+$$
+logit(p_i) = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \cdots \beta_zx_{iz}
+$$
+
+$$
+y_i \sim binomial(N,p_i)
+$$
+
+And remember
+
+-   **N = number of trials**
+
+-   $p_i$ = probability of success for sample unit i
+
+-   z = number of predictors in model
+
+Let's run a model
+
+```{r}
+model2 <- glm(presence ~ habitat + elevation, family = binomial(link = "logit"), data = orchiddata)
+
+summary(model2)
+```
+
+And now that we really understand (hopefully! Else I'll be pretty sad!) how we can obtain predictions from linear models, we can do it the same way for GLM's.
+
+Looking at the model matrix always helps. First let's look at the data again:
+
+```{r}
+head(orchiddata)
+```
+
+And then, let's look at the model matrix:
+
+```{r}
+head(model.matrix(model2))
+```
+
+However, these linear predictors are for the transformed response variable (logit of odds). To look at the actual value predictors, we use `predict()`:
+
+Let's predict the occurrence probability at different elevations in the oak habitat.
+
+-   Step 1: Make a data frame with different values of the predictors (x)
+
+```{r}
+predData.elev <- data.frame(elevation = seq(min(orchiddata$elevation), max(orchiddata$elevation), length = 100),habitat = "Oak")
+head(predData.elev)
+```
+
+-   Step 2: Obtain the predictors
+
+```{r}
+pred.link <- predict(model2, newdata = predData.elev, se.fit = TRUE)
+```
+
+-   Step 3: Use plogis (inverse link) to backtransform data
+
+```{r}
+predData.elev$p <- plogis(pred.link$fit) # back transform to probability scale
+predData.elev$lower <- plogis(pred.link$fit - 1.96 * pred.link$se.fit)
+predData.elev$upper <- plogis(pred.link$fit + 1.96 * pred.link$se.fit)
+```
+
+And now... let's plot:
+
+```{r}
+ggplot() +
+ geom_point(data = orchiddata, aes(x = elevation, y = presence),size=3) +
+  geom_path(data = predData.elev, aes(x = elevation, y = p),size=2) +
+  geom_ribbon(data = predData.elev, aes(x = elevation, ymin = lower, ymax = upper),
+              fill = NA, color = "black", linetype = "longdash",size=1) +
+  scale_y_continuous("Presence") +
+  scale_x_continuous("Elevation (m)") +
+  theme_bw()
+```
+
+Look at the CI's what do you notice?
+
+Look at all habitats at the same time.
+
+This is an alternative way to look at it, particularly for models that seem pretty close.
+
+Also... the way to do it in the same plot using different colors is in Canvas!
+
+```{r}
+
+new.data2 <- expand.grid(elevation = seq(min(orchiddata$elevation), max(orchiddata$elevation)), 
+                        habitat = c("Maple", "Oak", "Pine"))
+
+pred.link.full <- predict(model2, newdata = new.data2, se.fit = TRUE)
+
+new.data2$p <- plogis(pred.link.full$fit) # back transform to probability scale
+new.data2$lower <- plogis(pred.link.full$fit - 1.96 * pred.link.full$se.fit)
+new.data2$upper <- plogis(pred.link.full$fit + 1.96 * pred.link.full$se.fit)
+
+
+ggplot() +
+ geom_point(data = orchiddata, aes(x = elevation, y = presence),size=3) +
+  geom_path(data = new.data2, aes(x = elevation, y = p),size=2) +
+  geom_ribbon(data = new.data2, aes(x = elevation, ymin = lower, ymax = upper),
+              fill = NA, color = "black", linetype = "longdash",size=1) +
+  scale_y_continuous("Presence") +
+  scale_x_continuous("Elevation (m)") +
+  facet_wrap(~habitat)+
+  theme_bw()
+
+```
+
+Finally... let's look at the occurrence probability in each habitat type:
+
+```{r}
+predData.hab <- data.frame(habitat = c("Oak", "Maple", "Pine"), elevation = 250)
+pred.hab <- predict(model2, newdata = predData.hab, se.fit = TRUE)
+predData.hab$p <- plogis(pred.hab$fit) # back transform to probability scale
+predData.hab$lower <- plogis(pred.hab$fit - pred.hab$se.fit)
+predData.hab$upper <- plogis(pred.hab$fit + pred.hab$se.fit)
+
+ggplot() +
+  geom_col(data = predData.hab, aes(x = habitat, y = p), fill = "grey60") +
+  geom_errorbar(data = predData.hab, aes(x = habitat, ymin = lower, ymax = upper),
+                width = 0.1) +
+  scale_y_continuous("Probability of occurrence") +
+  scale_x_discrete("Habitat type")+
+   theme_bw()
+
+```
+
+Run a third model (glm) where the only explanatory variable is elevation. Compare the AIC values
+
+```{r}
+model3 <- glm(presence ~ elevation, family = binomial(link = "logit"), data = orchiddata)
+
+summary(model3)
+
+AIC(model2, model3)
+```
+
+Model 3 has a lower AIC.

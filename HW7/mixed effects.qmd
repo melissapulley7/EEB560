@@ -1,0 +1,316 @@
+---
+title: "Mixed effects model lab"
+author: "Dr. Alejandro Molina-Moctezuma (if turning in a lab in this format, write your name here instead of mine!)"
+format: html
+editor: visual
+---
+
+## This lab
+
+If you're able to open the .qmd file on your computer, you can submit the lab that way. That will also make grading easier and faster!
+
+Ideally, try to render it to create an html document. If that's not working, submit the .qmd file.
+
+If that's not possible, please submit it as before.
+
+## Walleye and Hg data
+
+Make sure to understand the model structure of a mixed effect model.
+
+We are going to simulate the data. While usually I provide the data, I think it's important for you to understand how this data is simulated, as it relates to the way the underlying system works.
+
+This is the same example as in the class. We are sampling walleye in Lake Michigan, and are worried about the concentration of Hg and how it relates to length.
+
+We sample four sites and measure length and Hg of all individuals.
+
+We are simulating the data, and in this case
+
+#### Regions
+
+In this dataset we have four regions, and we need to generate a random intercept around them:
+
+```{r}
+gamma <- rnorm(n=4,mean=0,sd=0.25) 
+```
+
+Another random components is the number of individuals caught. The effort was the same in the four sites, and catchability is constant, meaning that they should catch about the same number of individuals.
+
+```{r}
+N<- round(rnorm(4,20,2))
+N
+```
+
+#### Simulation
+
+Once we obtain the number of individuals, we will use a random uniform distribution to simulate the number of individuals that were caught.
+
+Finally, the amount of Hg in an individual will be given by:
+
+$$
+Hg_{i,j} = 0.5+0.18(x_{i,j}) + \gamma_j + \epsilon
+$$
+
+We will do this four times, and in order to save time, we will do it in a for loop and will save the results in a list
+
+```{r}
+HgDat<-list()
+
+```
+
+Once we created the lists, we can run the simulation:
+
+```{r}
+for(i in 1:4){
+  x<-runif(N[i],20,60)
+  y<-0.5 + 0.018*x + gamma[i] + rnorm(N[i],0,0.08)
+  Region<-rep(LETTERS[i],N[i])
+  HgDat[[i]]<-data.frame(size=x,Hg=y,region=Region)
+}
+```
+
+Check whether the data makes sense. Run HgDat, and you should see four different dataframes, one for each region. There was an easy way to make this into a single dataframe, but lists can be very neat.
+
+In order to have a single dataframe, we can do the following:
+
+```{r echo=F}
+library(dplyr)
+```
+
+```{r}
+HgDat_df<-bind_rows(HgDat)
+HgDat_df$region<-as.factor(HgDat_df$region)
+```
+
+Now we have an object called HgDat_df with all of the data. Let's look at it
+
+```{r}
+library(knitr)
+library(kableExtra)
+library(dplyr)
+kbl(HgDat_df, col.names = gsub("[.]", " ", names(HgDat_df)))%>%
+  kable_paper() %>%
+  scroll_box(width = "500px", height = "200px")
+
+```
+
+#### Model
+
+In order to run a GLMM with a random intercept, we can use the following code:
+
+```{r}
+library(glmmTMB)
+#| warning: False 
+m1<- glmmTMB(Hg~size + (1|region), data=HgDat_df)
+
+summary(m1)
+
+```
+
+::: callout-note
+Are you getting an error about NaN's found in the data? This is probably caused by the "Matrix" package that followign an upate started adding NAN's due to a bug. The best solution would be to reinstall the Matrix package independently
+:::
+
+Let's remember our simulated data. Was the model good enough?
+
+$$
+Hg_{i,j} = 0.5+0.18(x_{i,j}) + \gamma_j + \epsilon
+$$
+
+Variance individuals and gamma
+
+```{r}
+0.08^2
+0.25^2
+```
+
+#### Predictions and plot
+
+Make a prediction data frame
+
+```{r}
+preddata <- HgDat_df
+preddata$predHg <- predict(m1, preddata)
+
+```
+
+And plot the model
+
+```{r}
+#| warning: False 
+library(ggplot2)
+ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
+	geom_point() +
+	geom_line(data=preddata, aes(x=size, y=predHg, col=region))
+ 
+```
+
+#### How to obtain a population "line"
+
+```{r}
+preddata <- HgDat_df
+preddata$predHg <- predict(m1, preddata)
+preddata$predHg_population <- predict(m1, preddata, re.form=~0)
+
+ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
+	geom_point() +
+	geom_line(data=preddata, aes(x=size, y=predHg, col=region))+
+  geom_line(data=preddata, aes(x=size, y=predHg_population), 					col='black',linewidth=1.5) 
+```
+
+Now, let's repeat this analysis, but in this case, let's assume the intercept is fixed, and the slope is random
+
+::: callout-important
+## Question 1: points:10
+
+Simulate the same study, but in this case, there is a fixed intercept and a random slope. 1) Present the equation you used for the simulation (similar to the equation I showed in this document). 2) Run the mixed-effects model, 3) Report whether the model output was a good representation of reality, and 4) plot your model
+:::
+
+Let's do the same, but now, both the intercept and the slope are random.
+
+```{r}
+psi <- rnorm(n=4,mean=0,sd=0.25) 
+gamma <- 0
+N<- round(rnorm(4,20,2))
+
+HgDat<-list()
+
+for(i in 1:4){
+  x<-runif(N[i],20,60)
+  y<-0.5 + (0.018+psi[i])*x + gamma + rnorm(N[i],0,0.08)
+  Region<-rep(LETTERS[i],N[i])
+  HgDat[[i]]<-data.frame(size=x,Hg=y,region=Region)
+}
+
+HgDat_df<-bind_rows(HgDat)
+HgDat_df$region<-as.factor(HgDat_df$region)
+
+kbl(HgDat_df, col.names = gsub("[.]", " ", names(HgDat_df)))%>%
+  kable_paper() %>%
+  scroll_box(width = "500px", height = "200px")
+
+m2<- glmmTMB(Hg~size + (0+size|region), data=HgDat_df)
+
+summary(m2)
+
+preddata <- HgDat_df
+preddata$predHg <- predict(m2, preddata)
+
+preddata <- HgDat_df
+preddata$predHg <- predict(m2, preddata)
+preddata$predHg_population <- predict(m2, preddata, re.form=~0)
+
+ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
+	geom_point() +
+	geom_line(data=preddata, aes(x=size, y=predHg, col=region))+
+  geom_line(data=preddata, aes(x=size, y=predHg_population),col='black',linewidth=1.5) 
+
+
+```
+
+::: callout-important
+## Question 2. Points: 10
+
+Simulate the same study, but in this case, there is a random intercept and a random slope. 1) Present the equation you used for the simulation (similar to the equation I showed in this document). 2) Run the mixed-effects model, 3) Report whether the model output was a good representation of reality, and 4) plot your model
+:::
+
+```{r}
+psi <- rnorm(n=4,mean=0,sd=0.25) 
+gamma <- rnorm(n=4,mean=0,sd=0.25) 
+N<- round(rnorm(4,20,2))
+
+HgDat<-list()
+
+
+for(i in 1:4){
+  x<-runif(N[i],20,60)
+  y<-0.5 + (0.018+psi[i])*x + gamma[i] + rnorm(N[i],0,0.08)
+  Region<-rep(LETTERS[i],N[i])
+  HgDat[[i]]<-data.frame(size=x,Hg=y,region=Region)
+}
+
+HgDat_df<-bind_rows(HgDat)
+HgDat_df$region<-as.factor(HgDat_df$region)
+
+kbl(HgDat_df, col.names = gsub("[.]", " ", names(HgDat_df)))%>%
+  kable_paper() %>%
+  scroll_box(width = "500px", height = "200px")
+
+m3<- glmmTMB(Hg~size + (1+size|region), data=HgDat_df)
+
+summary(m3)
+
+preddata <- HgDat_df
+preddata$predHg <- predict(m3, preddata)
+
+ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
+	geom_point() +
+	geom_line(data=preddata, aes(x=size, y=predHg, col=region))
+
+preddata <- HgDat_df
+preddata$predHg <- predict(m3, preddata)
+preddata$predHg_population <- predict(m3, preddata, re.form=~0)
+
+ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
+	geom_point() +
+	geom_line(data=preddata, aes(x=size, y=predHg, col=region))+
+  geom_line(data=preddata, aes(x=size, y=predHg_population), 					col='black',linewidth=1.5) 
+
+
+```
+
+Finally, let's look at what happens with a low N.
+
+You will repeat question 2, but using the following to obtain your sample:
+
+```{r}
+
+```
+
+```{r}
+psi <- rnorm(n=4,mean=0,sd=0.25) 
+gamma <- rnorm(n=4,mean=0,sd=0.25)
+N<- round(rnorm(100,150,25))
+
+
+HgDat<-list()
+
+
+for(i in 1:4){
+  x<-runif(N[i],20,60)
+  y<-0.5 + (0.018+psi[i])*x + gamma[i] + rnorm(N[i],0,0.08)
+  Region<-rep(LETTERS[i],N[i])
+  HgDat[[i]]<-data.frame(size=x,Hg=y,region=Region)
+}
+
+HgDat_df<-bind_rows(HgDat)
+HgDat_df$region<-as.factor(HgDat_df$region)
+
+kbl(HgDat_df, col.names = gsub("[.]", " ", names(HgDat_df)))%>%
+  kable_paper() %>%
+  scroll_box(width = "500px", height = "200px")
+
+m4<- glmmTMB(Hg~size + (1|region), data=HgDat_df)
+
+summary(m4)
+
+preddata <- HgDat_df
+preddata$predHg <- predict(m4, preddata)
+preddata$predHg_population <- predict(m4, preddata, re.form=~0)
+
+ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
+	geom_point() +
+	geom_line(data=preddata, aes(x=size, y=predHg, col=region))+
+  geom_line(data=preddata, aes(x=size, y=predHg_population), 					col='black',linewidth=1.5) 
+```
+
+::: callout-important
+## Question 3. Points:4
+
+Re-run the code you used for question 2, but using the new N. Report any differences that you see after running the model with a low N
+:::
+
+Total points: 24
+
+Resources:
+
+ggplot cheat sheet: <https://github.com/rstudio/cheatsheets/blob/main/data-visualization.pdf>
