@@ -1,0 +1,78 @@
+---
+title: "MPulleyM2Q2"
+author: "Melissa Pulley"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+self-contained: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Come up with a biological example of data that has a binomial distribution. Your example MUST be based on a scientific paper. You need to add the citation of the paper that you based your distribution on! Remember, you need an n and a p.
+
+    I am examining the prevalence of Chyridomycosis in Stream Frogs in Tropical Queensland. The study found a probability of disease prevalence in adult stream frogs between 0.0075 to 0.001 depending on the species. I will use a $p=0.001$. Over the course of the study 765 adult frogs were evaluated for the disease, so I will use 765 as the sample size.
+    
+      WOODHAMS, DOUGLAS C., and ROSS A. ALFORD. “Ecology of Chytridiomycosis in Rainforest Stream Frog Assemblages of Tropical Queensland.” Conservation biology 19.5 (2005): 1449–1459. Web.
+
+
+
+2. Calculate and plot the PMF for all potential results.
+
+```{r}
+n=765
+x = 0:n
+p = 0.1
+
+my_pmf = dbinom(x,n,p)
+sum(my_pmf)
+
+newplot<-barplot(my_pmf, col = "steelblue", ylim=c(0,0.05), main="Chyridomycosis Prevalence in Stream Frogs", xlab="Number of frogs infected per sample of size 765", ylab = "Frequency")
+```
+
+
+3. Calculate the expected value.
+
+The expected value is 76.5.
+
+```{r}
+EV<-sum(my_pmf*x)
+EV
+```
+
+
+4. Based on your biologically example, simulate a single study, and calculate the maximum likelihood estimate.
+
+The estimated MLE is 0.1098039.
+
+```{r}
+set.seed(43)
+sims1 = rbinom(n,1,p)
+MLE = sum(sims1)/n
+MLE
+
+```
+
+5. Come up with a biological example of data that has a Poisson distribution. Your example MUST be based on a scientific paper. You need to add the citation of the paper that you based your distribution on! Calculate and plot the PMF
+
+
+This paper estimates number of aphids on a potato plant. The mean number of aphids is 536. 
+
+  Anscombe, F. J. “On Estimating the Population of Aphids in A Potato Field.” Annals of applied biology 35.4 (1948): 567–571. Web.
+
+
+```{r}
+n=536
+x = 0:(2*n)
+lambda =  536
+
+pois_pmf = dpois(x,lambda)
+
+sum(pois_pmf)
+
+newplot<-barplot(pois_pmf, col = "steelblue", main="Number of aphid on a potato plants", xlab="Number of Aphids", ylab = "Frequency")
+```
+

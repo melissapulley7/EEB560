@@ -1,7 +1,8 @@
 ---
 title: "Mixed effects model lab"
-author: "Dr. Alejandro Molina-Moctezuma (if turning in a lab in this format, write your name here instead of mine!)"
+author: "Melissa Pulley"
 format: html
+self-contained: true
 editor: visual
 ---
 
@@ -165,7 +166,11 @@ Now, let's repeat this analysis, but in this case, let's assume the intercept is
 Simulate the same study, but in this case, there is a fixed intercept and a random slope. 1) Present the equation you used for the simulation (similar to the equation I showed in this document). 2) Run the mixed-effects model, 3) Report whether the model output was a good representation of reality, and 4) plot your model
 :::
 
-Let's do the same, but now, both the intercept and the slope are random.
+We have the model with fixed intercept and random slope
+
+$$
+Hg_{i,j} = 0.5+(0.18+\psi_j)x_{i,j} + \epsilon
+$$\
 
 ```{r}
 psi <- rnorm(n=4,mean=0,sd=0.25) 
@@ -190,6 +195,7 @@ kbl(HgDat_df, col.names = gsub("[.]", " ", names(HgDat_df)))%>%
 
 m2<- glmmTMB(Hg~size + (0+size|region), data=HgDat_df)
 
+
 summary(m2)
 
 preddata <- HgDat_df
@@ -206,6 +212,14 @@ ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
 
 
 ```
+
+## Answer 1.
+
+$$
+Hg_{i,j} = 0.5+(0.18+\psi_j)x_{i,j} + \epsilon
+$$
+
+The p-value for the fixed intercept is significant, but the p-value for the random slope is $0.459>0.05$, which is not significant. Thus, this model may not be the best fit.
 
 ::: callout-important
 ## Question 2. Points: 10
@@ -235,16 +249,9 @@ kbl(HgDat_df, col.names = gsub("[.]", " ", names(HgDat_df)))%>%
   kable_paper() %>%
   scroll_box(width = "500px", height = "200px")
 
-m3<- glmmTMB(Hg~size + (1+size|region), data=HgDat_df)
+m3<- glmmTMB(Hg~size + (1 + size|region), data=HgDat_df)
 
 summary(m3)
-
-preddata <- HgDat_df
-preddata$predHg <- predict(m3, preddata)
-
-ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
-	geom_point() +
-	geom_line(data=preddata, aes(x=size, y=predHg, col=region))
 
 preddata <- HgDat_df
 preddata$predHg <- predict(m3, preddata)
@@ -258,19 +265,22 @@ ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
 
 ```
 
+## Answer 2
+
+$$
+Hg_{i,j} = 0.5+(0.18+\psi_j)x_{i,j} + \gamma_j + \epsilon
+$$ The p-value for the random intercept is significant, but the p-value for the random slope is $0.872>0.05$, which is not significant. Thus, this model may not be the best fit.
+
 Finally, let's look at what happens with a low N.
 
 You will repeat question 2, but using the following to obtain your sample:
 
-```{r}
-
-```
+## Question 3
 
 ```{r}
 psi <- rnorm(n=4,mean=0,sd=0.25) 
 gamma <- rnorm(n=4,mean=0,sd=0.25)
-N<- round(rnorm(100,150,25))
-
+N<- round(rnorm(4,150,20))
 
 HgDat<-list()
 
@@ -289,7 +299,7 @@ kbl(HgDat_df, col.names = gsub("[.]", " ", names(HgDat_df)))%>%
   kable_paper() %>%
   scroll_box(width = "500px", height = "200px")
 
-m4<- glmmTMB(Hg~size + (1|region), data=HgDat_df)
+m4<- glmmTMB(Hg~size + (1+size|region), data=HgDat_df)
 
 summary(m4)
 
@@ -302,6 +312,10 @@ ggplot(data=HgDat_df, aes(x=size, y=Hg, col=region)) +
 	geom_line(data=preddata, aes(x=size, y=predHg, col=region))+
   geom_line(data=preddata, aes(x=size, y=predHg_population), 					col='black',linewidth=1.5) 
 ```
+
+## Answer 3
+
+The intercept and slope have significant p-values in question 3, whereas only the intercept was significant in question 2. We also see that the model from question 3 has a lower AIC. The model from question 3 appears to be the better model.
 
 ::: callout-important
 ## Question 3. Points:4

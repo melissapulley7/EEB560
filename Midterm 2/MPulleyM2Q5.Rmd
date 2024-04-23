@@ -1,0 +1,77 @@
+---
+title: "MPulleyM2Q5"
+author: "Melissa Pulley"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Download and read the orchid dataset that we used for the original logisticlab:
+
+```{r}
+orchid=readRDS("orchid.RDS")
+orchid$habitat = as.factor(orchid$habitat)
+summary(orchid)
+```
+
+Run the following models (assume Poisson distribution):
+
+1. Null model
+
+2. Effect of elevation on abundance
+
+3. Effect of elevation and habitat on abundance (additive)
+
+4. Interactive effect of elevation and habitat on abundance
+
+5. Effect of habitat on abundance
+
+```{r}
+m1 <- glm(abundance ~ 1, family = poisson(link = "log"),  data = orchid)
+m2 <- glm(abundance ~ elevation, family = poisson(link = "log"),  data = orchid)
+m3 <- glm(abundance ~ elevation + habitat, family = poisson(link = "log"),  data = orchid)
+m4 <- glm(abundance ~ elevation*habitat, family = poisson(link = "log"),  data = orchid)
+m5 <- glm(abundance ~ habitat, family = poisson(link = "log"),  data = orchid)
+```
+
+
+Using AICc select the best model, interpret it, and plot it 
+
+```{r}
+library(MuMIn)
+test=AICc(m1,m2,m3,m4,m5)
+best = min(test$AICc)
+test
+best
+```
+Model 2 is the best model because it has the lowest AIC. The means that for abundance of orchids, elevation is an important explanatory variable.
+
+```{r}
+newdata_orchid = data.frame(abundance = seq(min(orchid$abundance), 
+                                          max(orchid$abundance),length=100), 
+                       elevation = seq(min(orchid$elevation), 
+                                          max(orchid$elevation),length=100),
+                       show.legend = TRUE)
+
+pred.link.full1 <- predict(m2, newdata = newdata_orchid, se.fit = TRUE)
+newdata_orchid$ab <- exp(pred.link.full1$fit) 
+
+library(ggplot2)
+ggplot() +
+  geom_point(data = orchid, aes(x = elevation, y = abundance), size=2) +
+  geom_path(data = newdata_orchid, aes(x = elevation, y = ab), linewidth=1) +
+  xlab("Elevation") +
+  ylab("Abundance") +
+  labs(title="Impact of elevation on abundance of orchids")
+
+```
+
+
+Upload: AICc table, interpretation and plot.
+
+Upload the code you used for the best model

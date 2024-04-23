@@ -1,0 +1,77 @@
+---
+title: "Midterm2"
+author: "Melissa Pulley"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+self-contained: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1) Make a publication level figure that shows the weight of both infected and healthy tuna. Add a figure legend (caption) that accurately describes the figure. Be smart about the type of figure you use! 
+
+```{r}
+tuna = read.csv("tunadata.csv")
+tuna$status = as.factor(tuna$status)
+summary(tuna)
+
+## Figure
+library(ggplot2)
+ggplot(data=tuna, aes(x=status,y=growth, fill=status)) +
+  geom_boxplot(outlier.colour="black", outlier.shape=15,
+    outlier.size=2, notch=FALSE) +
+    theme(plot.caption = element_text(hjust = 0.5)) +
+    labs(title = "Growth for healthy vs. infected tuna", 
+         caption="This figure describe the size distribution of Yellowfish tuna based on their health status, healthy vs. 
+         infected with Lacistorhynchidae tapeworm.") +
+        ylab("Growth of Tuna") + xlab("Health Status")  
+
+```
+
+
+2) Obtain the mean, median and IQR for both groups.
+
+```{r}
+##
+healthy_tuna = tuna$growth[which(tuna$status=="healthy")]
+infected_tuna = tuna$growth[which(tuna$status=="infected")]
+
+mean(healthy_tuna)
+median(healthy_tuna)
+quarts = quantile(healthy_tuna)
+IQR = as.numeric(quarts[4] - quarts[2])
+IQR
+
+mean(infected_tuna)
+median(infected_tuna)
+quarts = quantile(infected_tuna)
+IQR = as.numeric(quarts[4] - quarts[2])
+IQR 
+```
+For the healthy tuna, the mean growth is 390.156, the median is 379.9, and the IQR is 203.6. For the infected tuna, the mean growth is 338.4, median is 330.1, and the IQR is 117.4.
+
+3) Based on the figure, mean, and IQR, do you thin there are differences in the data? Think biologically, what may cause the differences.
+
+Yes, I think there are differences between the healthy and infected tuna sizes. Biologically, infected tuna are unable to fully use nutrients they consume for growth because the parasite consumes some of the nutrients from the tuna, making infected tuna smaller than healthy tuna. 
+
+4) Run an appropriate null hypothesis test (NHST) to test whether there are differences. Follow the 5 steps of the NHST process. Present the code and the output you got.
+
+    1. The null hypothesis is that the mean of both population are equal. The alternative hypothesis is that at least one is different.
+    2. We will use the tuna data. 
+    3. We will perform an ANOVA test. 
+    4. Because the p-value is above 0.05, we fail to reject the null hypothesis
+    5. We cannot conclude that the mean of health vs. infected tuna are different.
+    
+```{r}
+#Consider the linear model
+m1 = lm(growth~status, data = tuna)
+summary(m1)
+anova(m1)
+```
+5) Do you think the results accurately represent reality? If not, why? What biological processes might have affected your results?
+
+I think the results are inaccurate and there are likely is a difference in mean growth of healthy vs. infected tuna. Logically, it feels that a fish with a parasite would impact the ability of the fish to thrive. Biologically, perhaps there is an issue with fairly sampling infected tuna as some may die from the disease.

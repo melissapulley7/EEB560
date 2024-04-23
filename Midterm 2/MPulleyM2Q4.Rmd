@@ -1,0 +1,73 @@
+---
+title: "MPulleyM2Q4"
+author: "Melissa Pulley"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+self-contained: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, echo = TRUE)
+```
+
+```{r}
+cod = read.csv("parasitecod.csv")
+
+```
+
+1. Before running the model, please note that both year and region (area in the dataset) have numeric values. However, we want them to be categorical variables. Transform the dataset so that they become categorical. 
+
+```{r}
+cod$Year = as.factor(cod$Year)
+cod$Area = as.factor(cod$Area)
+
+code <- subset(cod, select = c(Length, Prevalence, Year, Area)) 
+
+summary(code)
+```
+    
+
+2. Run the model
+
+```{r}
+m = glm(Prevalence~Length+Year+Area, family = binomial(link = "logit"),data=code)
+summary(m)
+```
+3. Describe the results. Which predictors are significant?
+
+    The results give the coefficients for the glm model with link function "logit". Almost all of the predictors have significant coefficients. The only one not significant is the intercept, which means we do not have function evidence to support a nonzero intercept.
+
+4. Now, let's plot the model. The Y axis should be prevalence (between 0 and 1) and you should include ALL explanatory variables in the plot. Tip: look at the logistic lab (classlogistic) and how we plotted the 3 habitats in that (using facet_wrap). 
+
+
+```{r}
+newdata2 = NaN
+newdata2 <- expand.grid(Length = seq(min(code$Length,na.rm = TRUE), max(code$Length,na.rm=TRUE)),
+                        Year = c("1999", "2000", "2001"),
+                        Area = as.factor(seq(1,4)))
+#pred = m$coefficients[1] + sum(m$coefficients[2:7])*newdata2$Length
+
+pred.link.full <- predict(m, newdata = newdata2, se.fit = TRUE)
+
+newdata2$p <- plogis(pred.link.full$fit) # back transform to probability scale
+newdata2$lower <- plogis(pred.link.full$fit - 1.96 * pred.link.full$se.fit)
+newdata2$upper <- plogis(pred.link.full$fit + 1.96 * pred.link.full$se.fit)
+
+summary(newdata2)
+
+
+#predict= m$coefficients[1] + sum(m$coefficients[2:6])*newdata2
+
+library(ggplot2)
+ggplot() +
+ geom_point(data = code, aes(x = Length, y = Prevalence),size=2) +
+  geom_path(data=newdata2, aes(x = Length, y = p),size=1) +
+  xlab("Length") +
+  ylab("Prevalence") +
+  facet_wrap(~Area+Year)+
+  theme_bw()
+
+```
+
