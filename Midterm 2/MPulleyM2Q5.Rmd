@@ -5,10 +5,11 @@ date: "`r Sys.Date()`"
 output:
   pdf_document: default
   html_document: default
+self-contained: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, echo = TRUE)
 ```
 
 Download and read the orchid dataset that we used for the original logisticlab:

@@ -2,11 +2,14 @@
 title: "MPulleyM2Q6"
 author: "Melissa Pulley"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
+self-contained: yes
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, echo = TRUE)
 ```
 
 You are tasked on evaluating the growth of grass (kg of dry matter per hectare: KgDMHA). 
@@ -14,7 +17,9 @@ You are tasked on evaluating the growth of grass (kg of dry matter per hectare: 
 You want to test three models:
 
 KgDMHA~ Water + Salinity + Nitrogen
+
 KgDMHA~ Pests + Graze
+
 KgDMHA~ Water + Salinity + Nitrogen + Pests + Graze
 
 Before running the models, you wonder whether AICc will truly choose the model that best predicts the data, so, you have decided to do some model validation.
@@ -42,7 +47,7 @@ summary(training_dat)
 ```
 
 
-2) With the training dataset, run each of the three models. You should obtain an output for each model
+2. With the training dataset, run each of the three models. You should obtain an output for each model
 
 ```{r}
 m1 = lm(KgDMHA~Water + Salinity + Nitrogen, data=training_dat)
@@ -54,7 +59,7 @@ m3 = lm(KgDMHA~Water + Salinity + Nitrogen + Pests + Graze, data=training_dat)
 ```
 
 
-3) Obtain an AICc table for the models you ran
+3. Obtain an AICc table for the models you ran
 
 ```{r}
 library(MuMIn)
@@ -66,20 +71,63 @@ test
 4) In the test dataset, add three new columns called predictmodel1, predictmodel2, precitmodel3. Populate the columns with the predicted values based on each of the three models you ran. You can use the coefficients, or the predict function to obtain those values.
 
 ```{r}
-predictmodel1
+newdata1 <- data.frame(Water = seq(min(test_dat$Water,na.rm = TRUE), 
+                                   max(test_dat$Water,na.rm=TRUE),length=250),
+                        Salinity = seq(min(test_dat$Salinity,na.rm = TRUE), 
+                                       max(test_dat$Salinity,na.rm=TRUE), length=250),
+                        Nitrogen = seq(min(test_dat$Nitrogen,na.rm = TRUE), 
+                                       max(test_dat$Nitrogen,na.rm=TRUE), length=250))
 
-predictmode12
+newdata2 <- data.frame(Graze = seq(min(test_dat$Graze,na.rm = TRUE), 
+                                   max(test_dat$Graze,na.rm=TRUE),length=250),
+                        Pests = seq(min(test_dat$Pests,na.rm = TRUE), 
+                                    max(test_dat$Pests,na.rm=TRUE), length=250))
 
-predictmodel3
+newdata3 <- data.frame(Water = seq(min(test_dat$Water,na.rm = TRUE), 
+                                   max(test_dat$Water,na.rm=TRUE),length=250),
+                        Salinity = seq(min(test_dat$Salinity,na.rm = TRUE), 
+                                       max(test_dat$Salinity,na.rm=TRUE), length=250),
+                        Nitrogen = seq(min(test_dat$Nitrogen,na.rm = TRUE), 
+                                       max(test_dat$Nitrogen,na.rm=TRUE), length=250),
+                        Graze = seq(min(test_dat$Graze,na.rm = TRUE), 
+                                    max(test_dat$Graze,na.rm=TRUE),length=250),
+                        Pests = seq(min(test_dat$Pests,na.rm = TRUE), 
+                                    max(test_dat$Pests,na.rm=TRUE), length=250))
+
+test_dat$predictmodel1=predict(m1, newdata = newdata1)
+test_dat$predictmodel2=predict(m2, newdata = newdata2)
+test_dat$predictmodel3=predict(m3, newdata = newdata3)
 ```
 
 
-5) Use the following equation:
-$$RSME = \sqrt{\dfrac{\sum_{i=1}^n(y_i-\hat{y}_i)^2}{n}}$$
-And estimate RMSE for EACH of the three models.
+5. Use the following equation:
+    $$RSME = \sqrt{\dfrac{\sum_{i=1}^n(y_i-\hat{y}_i)^2}{n}}$$
+    And estimate RMSE for EACH of the three models.
 
-NOTE: Do not use a built-in R function to estimate RMSE, you should estimate it using the equation. You can take many steps (e.g., creating new columns, multiple lines of code) if you need to. As a reminder y is the observed data, and ŷ is the predicted value (for each model)  
+NOTE: Do not use a built-in R function to estimate RMSE, you should estimate it using the equation. You can take many steps (e.g., creating new columns, multiple lines of code) if you need to. As a reminder y is the observed data, and ŷ is the predicted value (for each model) 
 
-6) According to the RMSE, what model is the best?
+```{r}
 
-7) Compare the RMSE with the AICc and with the R-squared from the models. Do all three metrics agree on the best model?
+rsme1 = sqrt(sum((test_dat$predictmodel1-mean(test_dat$predictmodel1))^2)/length(test_dat$predictmodel1))
+rsme2 = sqrt(sum((test_dat$predictmodel2-mean(test_dat$predictmodel2))^2)/length(test_dat$predictmodel2))
+rsme3 = sqrt(sum((test_dat$predictmodel3-mean(test_dat$predictmodel3))^2)/length(test_dat$predictmodel3))
+
+c(rsme1, rsme2, rsme3)
+```
+
+
+6. According to the RMSE, what model is the best?
+
+    Since model 1 has the lowest RSME, it is the best model by this metric.
+
+7. Compare the RMSE with the AICc and with the R-squared from the models. Do all three metrics agree on the best model?
+
+    The AICc and $r^2$ indicates that model 3 is the best model since its AICc is lowest and its $r^2$ is the largest, describing 95.36%. This disagrees with th conclusion from the RMSE. 
+
+```{r}
+#checking r^2s
+summary(m1) #0.3821
+summary(m2) #0.5019
+summary(m3) #0.9536
+```
+
